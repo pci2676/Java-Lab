@@ -5,12 +5,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html
+ */
 @DisplayName("비동기 테스트")
 public class ThenAcceptAsyncTest {
 
@@ -66,4 +67,40 @@ public class ThenAcceptAsyncTest {
         assertThat(threadNames).hasSize(1);
         assertThat(threadNames).contains("main");
     }
+
+    @DisplayName("thenAcceptAsync는 완료후 새로운 스레드를 이용해서 다음 작업을 한다.")
+    @Test
+    void thenAcceptAsyncTest3() throws InterruptedException {
+        //given
+        Set<String> threadNames = new HashSet<>();
+        threadNames.add(Thread.currentThread().getName());
+
+        Executor executor = new ThreadPoolExecutor(2, 2, 1, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
+
+        CompletableFuture<String> future = new CompletableFuture<>();
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+
+        CompletableFuture<Void> nextFuture = future.thenAcceptAsync((string) -> {
+            threadNames.add(Thread.currentThread().getName());
+            System.out.println("처음 : " + threadNames);
+            countDownLatch.countDown();
+        }, executor);
+
+        //future 가 complete 되면 연쇄적으로 실행된다.
+        nextFuture.thenAcceptAsync((voidObject) -> {
+            threadNames.add(Thread.currentThread().getName());
+            System.out.println("다음 : " + threadNames);
+            countDownLatch.countDown();
+        });
+
+
+        //when
+        future.complete("Hello Future");
+        countDownLatch.await();
+
+        //then
+        System.out.println(threadNames);
+        assertThat(threadNames).hasSize(3);
+    }
+
 }
