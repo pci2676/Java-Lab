@@ -1,11 +1,36 @@
-def java_8_Projects = [project(":completable-future")]
+def java_8_projects = [project(":completable-future")]
 
-configure(java_8_Projects) {
+configure(java_8_projects) {
     apply plugin: "java"
 
     group 'com.javabom'
 
     sourceCompatibility = '1.8'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+        testCompile group: 'org.assertj', name: 'assertj-core', version: '3.6.1'
+    }
+
+    test {
+        useJUnitPlatform() {}
+    }
+
+}
+
+def java_11_projects = [project(":reactive-basic")]
+
+configure(java_11_projects) {
+    apply plugin: "java"
+
+    group 'com.javabom'
+
+    sourceCompatibility = '11'
 
     repositories {
         mavenCentral()

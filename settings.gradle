@@ -1,3 +1,4 @@
 rootProject.name = 'bomjava'
 include 'completable-future'
+include 'reactive-basic'
 
