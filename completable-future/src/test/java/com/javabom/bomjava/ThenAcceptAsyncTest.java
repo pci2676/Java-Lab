@@ -5,7 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,7 +49,8 @@ public class ThenAcceptAsyncTest {
     void thenAcceptAsyncTest2() throws InterruptedException {
         //given
         Set<String> threadNames = new HashSet<>();
-        threadNames.add(Thread.currentThread().getName());
+        String mainThreadName = Thread.currentThread().getName();
+        threadNames.add(mainThreadName);
 
         Executor executor = command -> {
             threadNames.add(Thread.currentThread().getName());
@@ -64,8 +70,7 @@ public class ThenAcceptAsyncTest {
         countDownLatch.await();
 
         //then
-        assertThat(threadNames).hasSize(1);
-        assertThat(threadNames).contains("main");
+        assertThat(threadNames).containsOnly(mainThreadName);
     }
 
     @DisplayName("thenAcceptAsync는 완료후 새로운 스레드를 이용해서 다음 작업을 한다.")
