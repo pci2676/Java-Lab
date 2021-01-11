@@ -1,4 +1,4 @@
-def java_8_projects = [project(":completable-future")]
+def java_8_projects = [project(":completable-future"), project(":reactor-kakao-2018")]
 
 configure(java_8_projects) {
     apply plugin: "java"

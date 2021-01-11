@@ -1,4 +1,5 @@
 rootProject.name = 'bomjava'
 include 'completable-future'
 include 'reactive-basic'
+include 'reactor-kakao-2018'
 
