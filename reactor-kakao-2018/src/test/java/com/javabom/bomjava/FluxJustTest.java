@@ -57,7 +57,7 @@ public class FluxJustTest {
         flux.subscribe(subscriber, errorConsumer, completeRunner);
     }
 
-    @DisplayName("concatMap 은 순서를 지켜서 데이터를 처리한다음 새로운 Publisher 를 반환한다." +
+    @DisplayName("concatMap 은 순서를 지켜서 데이터를 처리(flatmap처럼)한다음 새로운 Publisher 를 반환한다." +
             "작업은 동기적으로 먼저 들어온 구독자를 모두 처리하고 나서 뒤에 이어 새롭게 처리를 시작한다.")
     @Test
     void justConcatMapTest1() {
