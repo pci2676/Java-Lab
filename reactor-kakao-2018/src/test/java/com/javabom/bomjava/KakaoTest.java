@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class FluxTest {
+public class KakaoTest {
 
     @DisplayName("과일 종류(L), 과일(K)별 갯수(V) 구하기")
     @Test
@@ -25,11 +25,13 @@ public class FluxTest {
         final Flux<List<String>> basketFlux = Flux.fromIterable(baskets);
         CountDownLatch countDownLatch = new CountDownLatch(1);
         basketFlux.concatMap(basket -> {
+            //work 1 - 과일의 종류를 뽑아내는 작업
             final Mono<List<String>> distinctFruits = Flux.fromIterable(basket)
                     .log()
                     .distinct()
                     .collectList()
                     .subscribeOn(Schedulers.parallel());
+            //work 2 - 과일-갯수 맵으로 묶어내는 작업
             final Mono<Map<String, Long>> countFruitsMono = Flux.fromIterable(basket)
                     .log()
                     .groupBy(fruit -> fruit) // 바구니로 부터 넘어온 과일 기준으로 group을 묶는다.

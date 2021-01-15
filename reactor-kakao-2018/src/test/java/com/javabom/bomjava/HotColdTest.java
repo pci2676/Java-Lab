@@ -13,8 +13,9 @@ public class HotColdTest {
     @DisplayName("Cold 는 구독을 하면 그때부터 퍼블리셔가 구독정보를 발행한다.")
     @Test
     void hotColdTest() {
-        Flux<String> netFlix = Flux.just(getMovie().toArray(String[]::new))
-                .doOnNext(subs -> System.out.println("next : " + subs));
+        Flux<String> netFlix = Flux.fromStream(this::getMovie)
+                .doOnNext(subs -> System.out.println("next : " + subs))
+                .doOnComplete(() -> System.out.println("complete"));
 
         System.out.println("동기적으로 구독을 신청하면 그때 Subscription 을 처리하기 시작해서 새로운 데이터를 생성한다.");
         netFlix.subscribe(subs -> System.out.println("consume1 : " + subs));
@@ -24,34 +25,28 @@ public class HotColdTest {
     @DisplayName("Hot 은 구독을 하고 있지 않아도 퍼블리셔는 계속 구독정보를 발행하고 있다.")
     @Test
     void hotColdTest2() throws InterruptedException {
-        Flux<String> movieTheatre = Flux.fromStream(this::getMovie)
+        Flux<String> movieTheater = Flux.fromStream(this::getMovie)
                 .delayElements(Duration.ofSeconds(1)).share();
 
-
-        // you start watching the movie
         CountDownLatch countDownLatch = new CountDownLatch(3);
-        new Thread(
-                () -> movieTheatre.subscribe(
-                        scene -> {
-                            System.out.println("Chan are watching " + scene);
-                            countDownLatch.countDown();
-                        },
-                        System.out::println
-                )
-        ).start();
+        movieTheater.subscribe(
+                scene -> {
+                    System.out.println(Thread.currentThread().getName() + " Chan are watching " + scene);
+                    countDownLatch.countDown();
+                },
+                System.out::println
+        );
 
         countDownLatch.await();
 
         CountDownLatch completeCountDownLatch = new CountDownLatch(5);
-        new Thread(
-                () -> movieTheatre.subscribe(
-                        scene -> {
-                            System.out.println("In are watching " + scene);
-                            completeCountDownLatch.countDown();
-                        },
-                        System.out::println
-                )
-        ).start();
+        movieTheater.subscribe(
+                scene -> {
+                    System.out.println(Thread.currentThread().getName() + " In are watching " + scene);
+                    completeCountDownLatch.countDown();
+                },
+                System.out::println
+        );
 
         completeCountDownLatch.await();
     }
