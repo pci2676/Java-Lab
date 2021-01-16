@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 @DisplayName("Flux.just() 테스트")
-public class FluxJustTest {
+public class FluxBasicTest {
 
     @DisplayName("just 는 정보를 subscriber에게 그대로 전달해주고 아무런 설정이 없으면 동기적으로 이루어진다.")
     @Test
@@ -82,5 +82,4 @@ public class FluxJustTest {
 
         assertThat(timeMap.get(1)).isLessThan(timeMap.get(2));
     }
-
 }
