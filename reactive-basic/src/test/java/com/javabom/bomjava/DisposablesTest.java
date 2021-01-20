@@ -147,10 +147,8 @@ public class DisposablesTest {
                 .refCount(1);
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        Set<String> watchMovie = new HashSet<>();
         Disposable watcher1 = share.subscribe((item) -> {
             System.out.println(Thread.currentThread().getName() + " : 시청중");
-            watchMovie.add(item);
             countDownLatch.countDown();
         });
 
@@ -172,6 +170,52 @@ public class DisposablesTest {
         assertAll("구독도 멈추지 않음",
                 () -> assertThat(watcher1.isDisposed()).isFalse()
         );
+    }
+
+    @DisplayName("비동기로 발생하는 결제 요청을 취소 요청으로 중단하기")
+    @Test
+    void disposableScenarioTest() throws InterruptedException {
+        //given
+        Disposable.Swap swap = Disposables.swap();
+
+        Flux<String> paymentPubisher = Flux.just("결제 시작!", "step1", "step2", "step3", "step4", "결제 완료!")
+                .delayElements(Duration.ofSeconds(1))
+                .publish()
+                .refCount(1);
+        Flux<String> cancelPublisher = Flux.just("취소 시작!", "취소 완료!")
+                .delayElements(Duration.ofSeconds(1))
+                .publish()
+                .refCount(1);
+
+        CountDownLatch countDownLatch = new CountDownLatch(2);
+        Set<Boolean> paySet = new HashSet<>();
+        Disposable paymentDisposable = paymentPubisher.subscribe(
+                step -> {
+                    System.out.println("결제 단계 : " + step);
+                    countDownLatch.countDown();
+                },
+                e -> System.out.println(e.getMessage()),
+                () -> {
+                    paySet.add(true);
+                    System.out.println("완료!!!!!!!!");
+                }
+        );
+        swap.replace(paymentDisposable);
+
+        //when
+        countDownLatch.await();
+        CountDownLatch cancelCountDownLatch = new CountDownLatch(2);
+        Disposable cancelDisposable = cancelPublisher.subscribe(item -> {
+            System.out.println(item);
+            cancelCountDownLatch.countDown();
+        });
+
+        swap.update(cancelDisposable);
+        cancelCountDownLatch.await();
+
+        //then
+        assertThat(paySet).hasSize(0);
+        assertThat(paymentDisposable.isDisposed()).isTrue();
     }
 
     private Stream<String> getMovie() {
